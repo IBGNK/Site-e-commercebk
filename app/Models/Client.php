@@ -8,16 +8,10 @@ use Illuminate\Database\Eloquent\Model;
 class Client extends Model
 {
     use HasFactory;
-    protected $fillable = [
-        'nom',
-        'prenome',
-        'address',
-        'phone',
-        'sexe', // M pour Masculin, F pour Féminin
-    ];
+    protected $fillable = ['nom', 'prenom', 'adresse', 'telephone', 'sexe','email'];
 
-    public function orders()
+    public function commandes()
     {
-        return $this->hasMany(Order::class);
+        return $this->hasMany(Commande::class);
     }
 }
