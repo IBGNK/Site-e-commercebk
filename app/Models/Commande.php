@@ -8,4 +8,16 @@ use Illuminate\Database\Eloquent\Model;
 class Commande extends Model
 {
     use HasFactory;
+    protected $fillable = ['prix_total','client_id'];
+
+    public function client()
+    {
+        return $this->belongsTo(Client::class);
+    }
+
+    public function produits()
+    {
+        return $this->belongsToMany(Produit::class)->withPivot('quantite');
+    }
 }
+

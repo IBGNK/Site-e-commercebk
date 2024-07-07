@@ -14,4 +14,8 @@ class Client extends Model
     {
         return $this->hasMany(Commande::class);
     }
+    public function pannier()
+    {
+        return $this->hasOne(Panier::class);
+    }
 }
