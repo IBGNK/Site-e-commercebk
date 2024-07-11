@@ -7,92 +7,104 @@ use Illuminate\Http\Request;
 class ProduitController extends Controller
 {
 
+    namespace App\Http\Controllers;
+
+use App\Models\Produit;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Redirect;
+use Illuminate\Support\Facades\Auth;
+use Inertia\Inertia;
+
+class ProduitController extends Controller
+{
     public function index()
     {
-        $products = Product::with('category')->get();
-        return response()->json($products);
+        $produits = Produit::all();
+
+        return Inertia::render('Produits/Index', [
+            'produits' => $produits,
+        ]);
     }
 
-    /**
-     * Store a newly created product in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\JsonResponse
-     */
+    public function show(Produit $produit)
+    {
+        return Inertia::render('Produits/Show', [
+            'produit' => $produit,
+        ]);
+    }
+
+    public function create()
+    {
+        // Vérifie si l'utilisateur est autorisé à ajouter un produit
+        if (Auth::user()->role !== 'admin') {
+            abort(403, 'Vous n\'êtes pas autorisé à effectuer cette action.');
+        }
+
+        return Inertia::render('Produits/Create');
+    }
+
     public function store(Request $request)
     {
+        // Vérifie si l'utilisateur est autorisé à ajouter un produit
+        if (Auth::user()->role !== 'admin') {
+            abort(403, 'Vous n\'êtes pas autorisé à effectuer cette action.');
+        }
+
         $request->validate([
-            'nom' => 'required|string|max:255',
-            'description' => 'required|string',
-            'prix' => 'required|numeric',
-            'quantite_stock' => 'required|integer',
-            'photo' => 'nullable|string',
-            'categorie_id' => 'required|exists:categories,id',
+            'nom' => 'required',
+            'description' => 'nullable',
+            'prix' => 'required|numeric|min:0',
+            'quantite_stock' => 'required|integer|min:0',
+            // Ajoutez d'autres validations selon vos besoins
         ]);
 
-        $product = Product::create($request->all());
+        Produit::create($request->all());
 
-        return response()->json($product, 201);
+        return Redirect::route('produits.index')->with('success', 'Produit ajouté avec succès.');
     }
 
-    /**
-     * Display the specified product.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\JsonResponse
-     */
-    public function show($id)
+    public function edit(Produit $produit)
     {
-        $product = Product::with('category')->find($id);
-        if (!$product) {
-            return response()->json(['message' => 'Product not found'], 404);
+        // Vérifie si l'utilisateur est autorisé à modifier un produit
+        if (Auth::user()->role !== 'admin') {
+            abort(403, 'Vous n\'êtes pas autorisé à effectuer cette action.');
         }
-        return response()->json($product);
+
+        return Inertia::render('Produits/Edit', [
+            'produit' => $produit,
+        ]);
     }
 
-    /**
-     * Update the specified product in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
-     * @return \Illuminate\Http\JsonResponse
-     */
-    public function update(Request $request, $id)
+    public function update(Request $request, Produit $produit)
     {
+        // Vérifie si l'utilisateur est autorisé à modifier un produit
+        if (Auth::user()->role !== 'admin') {
+            abort(403, 'Vous n\'êtes pas autorisé à effectuer cette action.');
+        }
+
         $request->validate([
-            'nom' => 'sometimes|required|string|max:255',
-            'description' => 'sometimes|required|string',
-            'prix' => 'sometimes|required|numeric',
-            'quantite_stock' => 'sometimes|required|integer',
-            'photo' => 'nullable|string',
-            'categorie_id' => 'sometimes|required|exists:categories,id',
+            'nom' => 'required',
+            'description' => 'nullable',
+            'prix' => 'required|numeric|min:0',
+            'quantite_stock' => 'required|integer|min:0',
+            // Ajoutez d'autres validations selon vos besoins
         ]);
 
-        $product = Product::find($id);
-        if (!$product) {
-            return response()->json(['message' => 'Product not found'], 404);
-        }
+        $produit->update($request->all());
 
-        $product->update($request->all());
-
-        return response()->json($product);
+        return Redirect::route('produits.index')->with('success', 'Produit mis à jour avec succès.');
     }
 
-    /**
-     * Remove the specified product from storage.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\JsonResponse
-     */
-    public function destroy($id)
+    public function destroy(Produit $produit)
     {
-        $product = Product::find($id);
-        if (!$product) {
-            return response()->json(['message' => 'Product not found'], 404);
+        // Vérifie si l'utilisateur est autorisé à supprimer un produit
+        if (Auth::user()->role !== 'admin') {
+            abort(403, 'Vous n\'êtes pas autorisé à effectuer cette action.');
         }
 
-        $product->delete();
+        $produit->delete();
 
-        return response()->json(['message' => 'Product deleted']);
-    }
+        return Redirect::route('produits.index')->with('success', 'Produit supprimé avec succès.');
+    }
+
 }
